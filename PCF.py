@@ -29,31 +29,10 @@ merged = hs_df.merge(conversion, on='HS', how='left') # merges with conversion t
 
 # merged has naics and hs codes now 
 
-ceda = CEDA.CEDAClean.copy()
 
-print(ceda)
-
-#print(ceda.columns.tolist())
-
-# Assume your dataframe is called `ceda`
-
-# Drop the 3rd column with the unit label since it’s just repeated text
-ceda_clean = ceda.drop(columns=ceda.columns[2])
-
-# Melt from wide to long: id_vars are first two columns, product codes are columns after that
-ceda_long = pd.melt(
-    ceda_clean,
-    id_vars=[ceda_clean.columns[0], ceda_clean.columns[1]],  # Country Code and Country
-    var_name='product_code',
-    value_name='carbonIntensity'
-)
-
-
-ceda_long['carbon_intensity'] = pd.to_numeric(ceda_long['carbonIntensity'], errors='coerce')
-
+ceda_long = CEDA.ceda_long
 
 print(ceda_long)
-
 
 
 pcf_data = PCF.iloc[26:].reset_index(drop=True)
