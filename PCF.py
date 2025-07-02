@@ -58,6 +58,8 @@ pcf_long = pcf_long.rename(columns={pcf_data.columns[0]: 'country'})
 print(pcf_long)
 
 
+# look at aluminum 331313 for naics and 
+
 
 
 
