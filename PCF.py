@@ -58,11 +58,16 @@ pcf_long = pcf_long.rename(columns={pcf_data.columns[0]: 'country'})
 print(pcf_long)
 
 
-# look at aluminum 331313 for naics and 
+# look at aluminum 331313 for naics and 331110 for steel and 331420 for copper and 325211 for poly 
 
 
 
-
+# China
+# US
+# Brazil
+# India
+# Germany
+# Japan
 
 
 
