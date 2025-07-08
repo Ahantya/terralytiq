@@ -44,6 +44,8 @@ pcf_long = pcf_long.rename(columns={pcf_data.columns[0]: 'country'})
 conversion['HS'] = conversion['HS'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
 pcf_long['product_code'] = pcf_long['product_code'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
 
+pcf_long['original_HTS'] = pcf_long['product_code']
+
 pcf_with_naics = pcf_long.merge(
     conversion[['HS', 'NAICS']],
     left_on='product_code',
@@ -71,19 +73,27 @@ naics_alias = {
 
 country_alias = {
     'United States of America': 'United States',
+    'United States Of America': 'United States',   # add this exact key
+    'USA - Alabama': 'United States',
+    'USA - Alaska': 'United States',
+    # ... add all 'USA - StateName' variants if you want them all unified to 'United States'
+    # or write a regex replace instead (see Option 3)
     'Republic of Korea': 'South Korea',
     'Russian Federation': 'Russia',
     'Viet Nam': 'Vietnam',
     'China, mainland': 'China',
-}
+}  
 
 pcf_with_naics['NAICS'] = pcf_with_naics['NAICS'].replace(naics_alias)
 ceda_long['NAICS'] = ceda_long['NAICS'].replace(naics_alias)
+
+
 
 # fix aliases
 
 pcf_with_naics['country'] = pcf_with_naics['country'].replace(country_alias)
 ceda_long['country'] = ceda_long['country'].replace(country_alias)
+
 
 
 # --- Filter for relevant NAICS and countries ---
@@ -110,14 +120,14 @@ naics_names = {
 
 plot_df = pd.concat([
     ceda_filtered[['country', 'NAICS', 'emissions', 'Source']],
-    pcf_filtered[['country', 'NAICS', 'emissions', 'Source']]
-])
+    pcf_filtered[['country', 'NAICS', 'emissions', 'Source', 'original_HTS']]
+], sort=False)
+
 plot_df['NAICS_Label'] = plot_df['NAICS'].map(lambda x: f"{x} ({naics_names.get(x, 'Unknown')})")
 
-
-usa_baseline = ceda_filtered[ceda_filtered['country'] == 'United States'][['NAICS', 'emissions']]
+usa_baseline = plot_df[plot_df['country'] == 'United States'][['NAICS', 'Source', 'emissions']]
 usa_baseline = usa_baseline.rename(columns={'emissions': 'usa_emissions'})
-plot_df = plot_df.merge(usa_baseline, on='NAICS', how='left')
+plot_df = plot_df.merge(usa_baseline, on=['NAICS', 'Source'], how='left')
 plot_df['emissions'] = pd.to_numeric(plot_df['emissions'], errors='coerce')
 plot_df['usa_emissions'] = pd.to_numeric(plot_df['usa_emissions'], errors='coerce')
 plot_df['Pct_Increase'] = ((plot_df['emissions'] - plot_df['usa_emissions']) / plot_df['usa_emissions']) * 100
@@ -125,10 +135,11 @@ plot_df['Pct_Increase'] = ((plot_df['emissions'] - plot_df['usa_emissions']) / p
 brazil_ceda_copper = plot_df[
     (plot_df['country'] == 'Brazil') &
     (plot_df['NAICS'] == '331420') &
-    (plot_df['Source'] == 'CEDA')
+    (plot_df['Source'] == 'PCF')
 ]
 
-#print(brazil_ceda_copper[['country', 'NAICS_Label', 'emissions', 'usa_emissions', 'Pct_Increase']])
+#print(brazil_ceda_copper[['country', 'Source', 'NAICS_Label', 'emissions', 'usa_emissions', 'Pct_Increase', 'original_HTS']])
+
 
 sns.set(style='whitegrid')
 
@@ -139,8 +150,8 @@ country_order = ['China', 'Brazil', 'India', 'Germany', 'Japan', 'United States'
 # Split into two DataFrames
 pcf_plot = plot_df[plot_df['Source'] == 'PCF'].copy()
 
-print("Rows for Brazil:\n", pcf_plot[pcf_plot['country'] == 'Brazil'])
-print(pcf_plot)
+#print("Rows for Brazil:\n", pcf_plot[pcf_plot['country'] == 'Brazil'])
+#print(pcf_plot)
 ceda_plot = plot_df[plot_df['Source'] == 'CEDA'].copy()
 
 # remove United States (always 0% increase)
