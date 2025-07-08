@@ -9,8 +9,8 @@ conversion = pd.read_csv("conversion.csv")
 conversion.columns = ['HS', 'NAICS']
 
 # --- Clean PCF ---
-PCF = PCF.iloc[26:]  # Skip first 26 rows of text
-PCF = PCF.drop(PCF.columns[0], axis=1)  # Drop empty first column
+PCF = PCF.iloc[26:]  
+PCF = PCF.drop(PCF.columns[0], axis=1)  
 PCF = PCF.drop(index=[28])
 
 # --- Clean HS codes from header ---
@@ -20,12 +20,12 @@ hs_df.columns = ['colname', 'HS']
 
 # --- Merge with HS → NAICS conversion ---
 conversion['HS'] = conversion['HS'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
-merged = hs_df.merge(conversion, on='HS', how='left')  # Get NAICS by column name
+merged = hs_df.merge(conversion, on='HS', how='left') 
 
 # --- Reshape PCF to long format ---
 pcf_data = PCF.iloc[0:].reset_index(drop=True)
 pcf_data.columns = hsCodes.values
-pcf_data = pcf_data[2:]  # Skip header rows again
+pcf_data = pcf_data[2:]  
 
 # print(pcf_data)
 
@@ -58,15 +58,15 @@ pcf_with_naics['NAICS'] = pcf_with_naics['NAICS'].astype(str).str.strip()
 # --- Prepare CEDA ---
 ceda_long = CEDA.ceda_long.copy()
 
-# Clean product_code to match HS format
+# clean product_code to match HS format
 ceda_long['NAICS'] = ceda_long['product_code'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
 
-# Rename to match for plotting
+# rename to match for plotting
 ceda_long = ceda_long.rename(columns={'carbonIntensity': 'emissions'})
 pcf_with_naics = pcf_with_naics.rename(columns={'carbon_intensity': 'emissions'})
 
 naics_alias = {
-    '331312': '331313',  # Treat both as aluminum
+    '331312': '331313',  # treat both as aluminum
 }
 
 country_alias = {
@@ -75,7 +75,6 @@ country_alias = {
     'Russian Federation': 'Russia',
     'Viet Nam': 'Vietnam',
     'China, mainland': 'China',
-    # add more if needed
 }
 
 pcf_with_naics['NAICS'] = pcf_with_naics['NAICS'].replace(naics_alias)
@@ -123,11 +122,17 @@ plot_df['emissions'] = pd.to_numeric(plot_df['emissions'], errors='coerce')
 plot_df['usa_emissions'] = pd.to_numeric(plot_df['usa_emissions'], errors='coerce')
 plot_df['Pct_Increase'] = ((plot_df['emissions'] - plot_df['usa_emissions']) / plot_df['usa_emissions']) * 100
 
+brazil_ceda_copper = plot_df[
+    (plot_df['country'] == 'Brazil') &
+    (plot_df['NAICS'] == '331420') &
+    (plot_df['Source'] == 'CEDA')
+]
 
+#print(brazil_ceda_copper[['country', 'NAICS_Label', 'emissions', 'usa_emissions', 'Pct_Increase']])
 
 sns.set(style='whitegrid')
 
-# Define the order of countries if you want a consistent order
+
 country_order = ['China', 'Brazil', 'India', 'Germany', 'Japan', 'United States']
 
 
@@ -138,7 +143,7 @@ print("Rows for Brazil:\n", pcf_plot[pcf_plot['country'] == 'Brazil'])
 print(pcf_plot)
 ceda_plot = plot_df[plot_df['Source'] == 'CEDA'].copy()
 
-# Remove United States (always 0% increase)
+# remove United States (always 0% increase)
 pcf_plot = pcf_plot[pcf_plot['country'] != 'United States']
 ceda_plot = ceda_plot[ceda_plot['country'] != 'United States']
 
@@ -191,3 +196,6 @@ for ax in g2.axes.flatten():
 
 plt.tight_layout()
 plt.show()
+
+
+# naics to HTS
