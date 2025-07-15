@@ -3,12 +3,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import CEDA
 
-# Load data
 PCF = pd.read_csv("PCF.csv")
 conversion = pd.read_csv("conversion.csv")
 conversion.columns = ['HS', 'NAICS']
 
-# Prepare PCF
+
 PCF = PCF.iloc[26:].drop(PCF.columns[0], axis=1).drop(index=[28])
 hsCodes = PCF.iloc[1].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
 
@@ -20,15 +19,15 @@ hs_df = pd.DataFrame({
     'Material': material_names.values
 })
 
-# Merge with conversion
+ 
 conversion['HS'] = conversion['HS'].astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
 merged = hs_df.merge(conversion, on='HS', how='left')
 
-# Set correct headers and drop top metadata rows
+
 pcf_data = PCF.reset_index(drop=True)
 pcf_data.columns = hsCodes.values
 pcf_data = pcf_data[2:]
-pcf_data.columns = pcf_data.columns.astype(str)  # Ensure string column names
+pcf_data.columns = pcf_data.columns.astype(str)  
 
 # Melt into long format
 pcf_long = pd.melt(
@@ -51,7 +50,7 @@ ceda_long['NAICS'] = ceda_long['product_code'].astype(str).str.strip().str.repla
 ceda_long = ceda_long.rename(columns={'carbonIntensity': 'emissions'})
 pcf_with_naics = pcf_with_naics.rename(columns={'carbon_intensity': 'emissions'})
 
-# Harmonize codes and country names
+
 naics_alias = {'331312': '331313'}
 country_alias = {
     'United States of America': 'United States',
@@ -69,7 +68,7 @@ ceda_long['NAICS'] = ceda_long['NAICS'].replace(naics_alias)
 pcf_with_naics['country'] = pcf_with_naics['country'].replace(country_alias)
 ceda_long['country'] = ceda_long['country'].replace(country_alias)
 
-# Focused NAICS and countries
+
 naics_codes = ['331110', '331313', '331420', '325211']
 countries = ['China', 'Brazil', 'India', 'Germany', 'Japan', 'United States']
 
@@ -137,7 +136,6 @@ for ax in g2.axes.flatten():
 plt.tight_layout()
 plt.show()
 
-# ✅ Print check: include material name
 germany_steel_pcf = pcf_with_naics[
     (pcf_with_naics['country'] == 'Germany') &
     (pcf_with_naics['NAICS'] == '331110')
