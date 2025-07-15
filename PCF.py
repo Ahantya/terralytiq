@@ -74,7 +74,7 @@ plot_df['emissions'] = pd.to_numeric(plot_df['emissions'], errors='coerce')
 plot_df['usa_emissions'] = pd.to_numeric(plot_df['usa_emissions'], errors='coerce')
 plot_df['Pct_Increase'] = ((plot_df['emissions'] - plot_df['usa_emissions']) / plot_df['usa_emissions']) * 100
 
-sns.set(style='whitegrid')
+sns.set_theme(style='whitegrid')
 country_order = ['China', 'Brazil', 'India', 'Germany', 'Japan', 'United States']
 
 pcf_plot = plot_df[plot_df['Source'] == 'PCF'].copy()
@@ -114,3 +114,25 @@ for ax in g2.axes.flatten():
 
 plt.tight_layout()
 plt.show()
+
+
+germany_steel_pcf = pcf_with_naics[
+    (pcf_with_naics['country'] == 'Germany') &
+    (pcf_with_naics['NAICS'] == '331110')
+]
+
+print("Original PCF emissions for Germany (Steel - NAICS 331110):")
+print(germany_steel_pcf)
+
+# material name from pcf column and add the ceda value from the naics code
+
+# options of steel materials for PCF as there are different product codes matching to the same CEDA
+
+
+#Steel - Steel (machined)
+# Polyethylene - Polyetheylene (ethane cracking)
+# Copper  - Copper (wire)
+# Aluminum  - Aluminum Casting (machined)
+
+
+# structured way to expand this idea 
