@@ -138,12 +138,60 @@ plt.show()
 
 germany_steel_pcf = pcf_with_naics[
     (pcf_with_naics['country'] == 'Germany') &
-    (pcf_with_naics['NAICS'] == '331110')
+    (pcf_with_naics['NAICS'] == '331a110')
 ]
 
 print("Original PCF emissions for Germany (Steel - NAICS 331110):")
 print(germany_steel_pcf[['country', 'product_code', 'Material', 'emissions', 'NAICS']])
 
+
+steel_pcf = pcf_with_naics[pcf_with_naics['NAICS'] == '331110'].copy()
+
+# Ensure emissions are numeric
+steel_pcf['emissions'] = pd.to_numeric(steel_pcf['emissions'], errors='coerce')
+
+# Drop rows with no material label
+steel_pcf = steel_pcf.dropna(subset=['Material'])
+
+# ----- 2. Get CEDA Steel Baseline -----
+ceda_steel = ceda_long[(ceda_long['NAICS'] == '331110') & (ceda_long['country'] == 'United States')].copy()
+ceda_steel['emissions'] = pd.to_numeric(ceda_steel['emissions'], errors='coerce')
+
+# Average CEDA value for steel
+ceda_baseline_value = ceda_steel['emissions'].mean()
+
+# ----- 3. Compute % increase vs USA baseline for each material -----
+steel_pcf['Pct_Increase'] = ((steel_pcf['emissions'] - ceda_baseline_value) / ceda_baseline_value) * 100
+
+# ----- 4. Clean material names (optional) -----
+steel_pcf['Material_Label'] = steel_pcf['Material'].str.replace('steel', '').str.strip().str.title()
+steel_pcf['Material_Label'] = steel_pcf['Material_Label'].replace('', 'General Steel')  # catch empty ones
+
+# ----- 5. Filter to countries of interest (non-USA) -----
+steel_pcf = steel_pcf[steel_pcf['country'].isin(countries) & (steel_pcf['country'] != 'United States')].copy()
+
+# ----- 6. Plot -----
+g3 = sns.catplot(
+    data=steel_pcf,
+    x='country',
+    y='Pct_Increase',
+    col='Material_Label',
+    kind='bar',
+    col_wrap=3,
+    height=4,
+    aspect=1.2,
+    order=[c for c in country_order if c != 'United States'],
+    palette='Purples'
+)
+
+g3.set_axis_labels("Country", "% Increase vs US CEDA Steel Baseline")
+g3.set_titles("PCF | Steel Type: {col_name}")
+for ax in g3.axes.flatten():
+    for label in ax.get_xticklabels():
+        label.set_rotation(45)
+        label.set_horizontalalignment('right')
+plt.tight_layout()
+plt.show()
 
 # material name from pcf column and add the ceda value from the naics code
 
