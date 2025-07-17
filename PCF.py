@@ -181,7 +181,8 @@ g3 = sns.catplot(
     height=4,
     aspect=1.2,
     order=[c for c in country_order if c != 'United States'],
-    palette='Purples'
+    palette='Purples',
+    ci = None
 )
 
 g3.set_axis_labels("Country", "% Increase vs US CEDA Steel Baseline")
