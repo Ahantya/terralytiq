@@ -137,8 +137,7 @@ plt.tight_layout()
 plt.show()  
 
 
-print("Unique Material names for NAICS 331110:")
-print(pcf_with_naics[pcf_with_naics['NAICS'] == '331110']['Material'].unique())
+print(pcf_with_naics[pcf_with_naics['NAICS'] == '331313']['Material'].unique())
 
 
 general_steel_pcf = pcf_with_naics[
@@ -187,6 +186,162 @@ g = sns.catplot(
 
 g.set_axis_labels("Product Code", "% Increase in Emissions vs USA")
 g.set_titles("{col_name}")
+for ax in g.axes.flatten():
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+plt.tight_layout()
+plt.show()
+
+
+######
+
+
+# Filter for product code 760421 (aluminum extrusion)
+code = '760421'
+aluminum_760421_pcf = pcf_with_naics[
+    (pcf_with_naics['product_code'] == code) &
+    (pcf_with_naics['country'] != 'United States')
+].copy()
+
+# Get the USA baseline for product code 760421
+usa_760421 = pcf_with_naics[
+    (pcf_with_naics['product_code'] == code) &
+    (pcf_with_naics['country'] == 'United States')
+][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
+
+# Merge to compute % increase vs USA
+aluminum_760421_pcf = aluminum_760421_pcf.merge(usa_760421, on='product_code', how='left')
+
+aluminum_760421_pcf['emissions'] = pd.to_numeric(aluminum_760421_pcf['emissions'], errors='coerce')
+aluminum_760421_pcf['usa_emissions'] = pd.to_numeric(aluminum_760421_pcf['usa_emissions'], errors='coerce')
+aluminum_760421_pcf['Pct_Increase'] = (
+    (aluminum_760421_pcf['emissions'] - aluminum_760421_pcf['usa_emissions']) /
+    aluminum_760421_pcf['usa_emissions']
+) * 100
+
+# Keep only the selected countries
+country_order = ['China', 'Brazil', 'India', 'Germany', 'Japan']
+aluminum_760421_pcf = aluminum_760421_pcf[aluminum_760421_pcf['country'].isin(country_order)]
+
+# Plot
+sns.set_theme(style='whitegrid')
+g = sns.catplot(
+    data=aluminum_760421_pcf,
+    x='country',
+    y='Pct_Increase',
+    kind='bar',
+    errorbar=None,
+    palette='Oranges',
+    height=5,
+    aspect=1.5,
+    order=country_order
+)
+
+g.set_axis_labels("Country", "% Increase in Emissions vs USA")
+g.set_titles("Aluminum (HS 760421) | PCF vs USA")
+for ax in g.axes.flatten():
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+plt.tight_layout()
+plt.show()
+
+
+#### 
+
+code = '740811'
+copper_740811_pcf = pcf_with_naics[
+    (pcf_with_naics['product_code'] == code) &
+    (pcf_with_naics['country'] != 'United States')
+].copy()
+
+# Get USA baseline for 740811
+usa_740811 = pcf_with_naics[
+    (pcf_with_naics['product_code'] == code) &
+    (pcf_with_naics['country'] == 'United States')
+][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
+
+# Merge for % increase
+copper_740811_pcf = copper_740811_pcf.merge(usa_740811, on='product_code', how='left')
+
+copper_740811_pcf['emissions'] = pd.to_numeric(copper_740811_pcf['emissions'], errors='coerce')
+copper_740811_pcf['usa_emissions'] = pd.to_numeric(copper_740811_pcf['usa_emissions'], errors='coerce')
+copper_740811_pcf['Pct_Increase'] = (
+    (copper_740811_pcf['emissions'] - copper_740811_pcf['usa_emissions']) /
+    copper_740811_pcf['usa_emissions']
+) * 100
+
+# Limit to relevant countries
+country_order = ['China', 'Brazil', 'India', 'Germany', 'Japan']
+copper_740811_pcf = copper_740811_pcf[copper_740811_pcf['country'].isin(country_order)]
+
+# Plot
+sns.set_theme(style='whitegrid')
+g = sns.catplot(
+    data=copper_740811_pcf,
+    x='country',
+    y='Pct_Increase',
+    kind='bar',
+    errorbar=None,
+    palette='Reds',
+    height=5,
+    aspect=1.5,
+    order=country_order
+)
+
+g.set_axis_labels("Country", "% Increase in Emissions vs USA")
+g.set_titles("Copper (HS 740811) | PCF vs USA")
+for ax in g.axes.flatten():
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+plt.tight_layout()
+plt.show()
+
+
+#### 
+
+# Filter for product code 390110 (polyethylene)
+code = '390110'
+poly_390110_pcf = pcf_with_naics[
+    (pcf_with_naics['product_code'] == code) &
+    (pcf_with_naics['country'] != 'United States')
+].copy()
+
+# Get USA baseline for 390110
+usa_390110 = pcf_with_naics[
+    (pcf_with_naics['product_code'] == code) &
+    (pcf_with_naics['country'] == 'United States')
+][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
+
+# Merge and calculate % increase
+poly_390110_pcf = poly_390110_pcf.merge(usa_390110, on='product_code', how='left')
+
+poly_390110_pcf['emissions'] = pd.to_numeric(poly_390110_pcf['emissions'], errors='coerce')
+poly_390110_pcf['usa_emissions'] = pd.to_numeric(poly_390110_pcf['usa_emissions'], errors='coerce')
+poly_390110_pcf['Pct_Increase'] = (
+    (poly_390110_pcf['emissions'] - poly_390110_pcf['usa_emissions']) /
+    poly_390110_pcf['usa_emissions']
+) * 100
+
+# Limit to relevant countries
+country_order = ['China', 'Brazil', 'India', 'Germany', 'Japan']
+poly_390110_pcf = poly_390110_pcf[poly_390110_pcf['country'].isin(country_order)]
+
+# Plot
+sns.set_theme(style='whitegrid')
+g = sns.catplot(
+    data=poly_390110_pcf,
+    x='country',
+    y='Pct_Increase',
+    kind='bar',
+    errorbar=None,
+    palette='Purples',
+    height=5,
+    aspect=1.5,
+    order=country_order
+)
+
+g.set_axis_labels("Country", "% Increase in Emissions vs USA")
+g.set_titles("Polyethylene (HS 390110) | PCF vs USA")
 for ax in g.axes.flatten():
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
 
