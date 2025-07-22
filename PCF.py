@@ -155,31 +155,41 @@ plt.tight_layout()
 plt.show()
 
 # --- General steel product code 720610 plot ---
-
-general_steel_720610_pcf = pcf_with_naics[
+# Filter only for steel and product_code = 720610
+steel_720610_pcf = pcf_with_naics[
     (pcf_with_naics['product_code'] == '720610') &
-    (pcf_with_naics['Material'].str.lower() == 'steel') &
-    (pcf_with_naics['country'] != 'United States')
+    (pcf_with_naics['Material'].str.lower() == 'steel')
 ].copy()
 
-usa_general_steel = pcf_with_naics[
-    (pcf_with_naics['product_code'] == '720610') &
-    (pcf_with_naics['Material'].str.lower() == 'steel') &
-    (pcf_with_naics['country'] == 'United States')
-][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
+# Clean emissions column
+steel_720610_pcf['emissions'] = pd.to_numeric(steel_720610_pcf['emissions'], errors='coerce')
+steel_720610_pcf = steel_720610_pcf.dropna(subset=['emissions'])
 
-general_steel_720610_pcf = general_steel_720610_pcf.merge(usa_general_steel, on='product_code', how='left')
+# Keep only the first entry per country
+first_emissions_per_country = steel_720610_pcf.groupby('country', as_index=False).first()
 
-general_steel_720610_pcf['emissions'] = pd.to_numeric(general_steel_720610_pcf['emissions'], errors='coerce')
-general_steel_720610_pcf['usa_emissions'] = pd.to_numeric(general_steel_720610_pcf['usa_emissions'], errors='coerce')
-general_steel_720610_pcf['Pct_Increase'] = ((general_steel_720610_pcf['emissions'] - general_steel_720610_pcf['usa_emissions']) / general_steel_720610_pcf['usa_emissions']) * 100
 
-general_steel_720610_pcf = general_steel_720610_pcf.dropna(subset=['Pct_Increase'])
 
-general_steel_720610_pcf = general_steel_720610_pcf[general_steel_720610_pcf['country'].isin(country_order)]
+# Get USA baseline
+usa_baseline_value = first_emissions_per_country[
+    first_emissions_per_country['country'] == 'United States'
+]['emissions'].values[0]
 
+print(f"USA baseline emission for Steel (720610): {usa_baseline_value}")
+
+# Add % Increase vs USA
+first_emissions_per_country['Pct_Increase'] = (
+    (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
+) * 100
+
+# Optional: filter to countries in your desired display order
+plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
+
+print(plot_data)
+
+# Plot
 g = sns.catplot(
-    data=general_steel_720610_pcf,
+    data=plot_data,
     x='country',
     y='Pct_Increase',
     kind='bar',
@@ -197,6 +207,7 @@ g.set_titles("Steel (Product Code 720610) | PCF vs USA")
 fix_plot(g)
 plt.tight_layout()
 plt.show()
+
 
 # --- Aluminum product code 760421 plot ---
 
