@@ -230,7 +230,7 @@ g = sns.catplot(
     x='country',
     y='Pct_Increase',
     kind='bar',
-    errorbar=None,
+    errorbar=None,  
     palette='Oranges',
     height=5,
     aspect=1.5,
@@ -347,3 +347,20 @@ for ax in g.axes.flatten():
 
 plt.tight_layout()
 plt.show()
+
+
+steel_pct_increase = plot_df[
+    (plot_df['NAICS'] == '331110') &
+    (plot_df['country'].isin(['China', 'Brazil', 'India', 'Germany', 'Japan']))
+]
+steel_pct_agg = steel_pct_increase.groupby(['country', 'Source'], as_index=False)['Pct_Increase'].mean()
+
+
+steel_pct_pivot = steel_pct_agg.pivot(index='country', columns='Source', values='Pct_Increase')
+
+print("Percent Increase in Emissions vs USA for NAICS 331110 (Steel):")
+print(steel_pct_pivot.round(2))
+
+
+# spot check china and germany 
+# fix pcf numbers baseline
