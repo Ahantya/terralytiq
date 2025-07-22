@@ -364,3 +364,7 @@ print(steel_pct_pivot.round(2))
 
 # spot check china brazil that should be lower than germany for ceda steel
 # fix pcf numbers baseline
+
+#1 positive trends are similar in ceda and pcf
+#2 spread of percentages in ceda are bigger.
+#3 china may be underestimated
