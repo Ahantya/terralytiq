@@ -362,5 +362,5 @@ print("Percent Increase in Emissions vs USA for NAICS 331110 (Steel):")
 print(steel_pct_pivot.round(2))
 
 
-# spot check china and germany 
+# spot check china brazil that should be lower than germany for ceda steel
 # fix pcf numbers baseline
