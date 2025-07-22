@@ -168,7 +168,7 @@ steel_720610_pcf = steel_720610_pcf.dropna(subset=['emissions'])
 # Keep only the first entry per country
 first_emissions_per_country = steel_720610_pcf.groupby('country', as_index=False).first()
 
-
+# REMEMBER THIS
 
 # Get USA baseline
 usa_baseline_value = first_emissions_per_country[
