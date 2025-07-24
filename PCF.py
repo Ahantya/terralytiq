@@ -209,32 +209,36 @@ plt.tight_layout()
 plt.show()
 
 
-# --- Aluminum product code 760421 plot ---
-
 code = '760421'
 aluminum_760421_pcf = pcf_with_naics[
-    (pcf_with_naics['product_code'] == code) &
-    (pcf_with_naics['country'] != 'United States')
+    (pcf_with_naics['product_code'] == code)
 ].copy()
 
-usa_760421 = pcf_with_naics[
-    (pcf_with_naics['product_code'] == code) &
-    (pcf_with_naics['country'] == 'United States')
-][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
-
-aluminum_760421_pcf = aluminum_760421_pcf.merge(usa_760421, on='product_code', how='left')
-
+# Clean emissions
 aluminum_760421_pcf['emissions'] = pd.to_numeric(aluminum_760421_pcf['emissions'], errors='coerce')
-aluminum_760421_pcf['usa_emissions'] = pd.to_numeric(aluminum_760421_pcf['usa_emissions'], errors='coerce')
-aluminum_760421_pcf['Pct_Increase'] = (
-    (aluminum_760421_pcf['emissions'] - aluminum_760421_pcf['usa_emissions']) /
-    aluminum_760421_pcf['usa_emissions']
+aluminum_760421_pcf = aluminum_760421_pcf.dropna(subset=['emissions'])
+
+# Keep only the first entry per country
+first_emissions_per_country = aluminum_760421_pcf.groupby('country', as_index=False).first()
+
+# Get USA baseline
+usa_baseline_value = first_emissions_per_country[
+    first_emissions_per_country['country'] == 'United States'
+]['emissions'].values[0]
+
+print(f"USA baseline emission for Aluminum (760421): {usa_baseline_value}")
+
+# Add % Increase vs USA
+first_emissions_per_country['Pct_Increase'] = (
+    (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-aluminum_760421_pcf = aluminum_760421_pcf[aluminum_760421_pcf['country'].isin(country_order)]
+# Filter by country_order
+plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
+# Plot
 g = sns.catplot(
-    data=aluminum_760421_pcf,
+    data=plot_data,
     x='country',
     y='Pct_Increase',
     kind='bar',
@@ -257,28 +261,34 @@ plt.show()
 
 code = '740811'
 copper_740811_pcf = pcf_with_naics[
-    (pcf_with_naics['product_code'] == code) &
-    (pcf_with_naics['country'] != 'United States')
+    (pcf_with_naics['product_code'] == code)
 ].copy()
 
-usa_740811 = pcf_with_naics[
-    (pcf_with_naics['product_code'] == code) &
-    (pcf_with_naics['country'] == 'United States')
-][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
-
-copper_740811_pcf = copper_740811_pcf.merge(usa_740811, on='product_code', how='left')
-
+# Clean emissions
 copper_740811_pcf['emissions'] = pd.to_numeric(copper_740811_pcf['emissions'], errors='coerce')
-copper_740811_pcf['usa_emissions'] = pd.to_numeric(copper_740811_pcf['usa_emissions'], errors='coerce')
-copper_740811_pcf['Pct_Increase'] = (
-    (copper_740811_pcf['emissions'] - copper_740811_pcf['usa_emissions']) /
-    copper_740811_pcf['usa_emissions']
+copper_740811_pcf = copper_740811_pcf.dropna(subset=['emissions'])
+
+# Keep only the first entry per country
+first_emissions_per_country = copper_740811_pcf.groupby('country', as_index=False).first()
+
+# Get USA baseline
+usa_baseline_value = first_emissions_per_country[
+    first_emissions_per_country['country'] == 'United States'
+]['emissions'].values[0]
+
+print(f"USA baseline emission for Copper (740811): {usa_baseline_value}")
+
+# Add % Increase vs USA
+first_emissions_per_country['Pct_Increase'] = (
+    (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-copper_740811_pcf = copper_740811_pcf[copper_740811_pcf['country'].isin(country_order)]
+# Filter by country order
+plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
+# Plot
 g = sns.catplot(
-    data=copper_740811_pcf,
+    data=plot_data,
     x='country',
     y='Pct_Increase',
     kind='bar',
@@ -297,32 +307,39 @@ fix_plot(g)
 plt.tight_layout()
 plt.show()
 
+
 # --- Polyethylene product code 390110 plot ---
 
 code = '390110'
 poly_390110_pcf = pcf_with_naics[
-    (pcf_with_naics['product_code'] == code) &
-    (pcf_with_naics['country'] != 'United States')
+    (pcf_with_naics['product_code'] == code)
 ].copy()
 
-usa_390110 = pcf_with_naics[
-    (pcf_with_naics['product_code'] == code) &
-    (pcf_with_naics['country'] == 'United States')
-][['product_code', 'emissions']].rename(columns={'emissions': 'usa_emissions'})
-
-poly_390110_pcf = poly_390110_pcf.merge(usa_390110, on='product_code', how='left')
-
+# Clean emissions
 poly_390110_pcf['emissions'] = pd.to_numeric(poly_390110_pcf['emissions'], errors='coerce')
-poly_390110_pcf['usa_emissions'] = pd.to_numeric(poly_390110_pcf['usa_emissions'], errors='coerce')
-poly_390110_pcf['Pct_Increase'] = (
-    (poly_390110_pcf['emissions'] - poly_390110_pcf['usa_emissions']) /
-    poly_390110_pcf['usa_emissions']
+poly_390110_pcf = poly_390110_pcf.dropna(subset=['emissions'])
+
+# Keep only the first entry per country
+first_emissions_per_country = poly_390110_pcf.groupby('country', as_index=False).first()
+
+# Get USA baseline
+usa_baseline_value = first_emissions_per_country[
+    first_emissions_per_country['country'] == 'United States'
+]['emissions'].values[0]
+
+print(f"USA baseline emission for Polyethylene (390110): {usa_baseline_value}")
+
+# Add % Increase vs USA
+first_emissions_per_country['Pct_Increase'] = (
+    (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-poly_390110_pcf = poly_390110_pcf[poly_390110_pcf['country'].isin(country_order)]
+# Filter by country order
+plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
+# Plot
 g = sns.catplot(
-    data=poly_390110_pcf,
+    data=plot_data,
     x='country',
     y='Pct_Increase',
     kind='bar',
