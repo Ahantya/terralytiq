@@ -106,22 +106,33 @@ ceda_plot = ceda_plot[ceda_plot['country'] != 'United States']
 
 pcf_plot = pcf_plot.drop_duplicates(subset=['country', 'NAICS'], keep='first')
 
-def fix_plot(g):
+def fix_plot(g, data):
     for ax in g.axes.flatten():
-        ticks = ax.get_xticks()
-        ax.xaxis.set_major_locator(FixedLocator(ticks))
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        # Get the countries used in this subplot
+        title = ax.get_title().split(' | ')[-1]
+        countries = data[data['NAICS_Label'] == title]['country'].dropna().unique()
+        countries = [c for c in country_order if c in countries]  # keep order consistent
+        ax.set_xticks(range(len(countries)))
+        ax.set_xticklabels(countries, rotation=45, ha='right')
 
+def fix_plotMaterial(g):
+    for ax in g.axes.flatten():
+        # Set proper x-tick labels
+        countries = ax.get_xticks()
+        labels = [t.get_text() for t in ax.get_xticklabels()]
+        ax.set_xticks(countries)
+        ax.set_xticklabels(labels, rotation=45, ha='right')
+
+
+# ✅ Fix for PCF plot
 g1 = sns.catplot(
     data=pcf_plot,
-    x='country',
+    x='country',              
     y='Pct_Increase',
     col='NAICS_Label',
     kind='bar',
     errorbar=None,
-    hue='country',
-    palette='Blues',
-    legend=False,
+    palette='Blues',         
     col_wrap=3,
     height=4,
     aspect=1.2,
@@ -129,9 +140,10 @@ g1 = sns.catplot(
 )
 g1.set_axis_labels("Country", "% Increase in Emissions vs USA (Ahantya Sharma)")
 g1.set_titles("PCF | {col_name}")
-fix_plot(g1)
+fix_plot(g1, pcf_plot)
 plt.tight_layout()
 plt.show()
+
 
 g2 = sns.catplot(
     data=ceda_plot,
@@ -140,9 +152,7 @@ g2 = sns.catplot(
     col='NAICS_Label',
     kind='bar',
     errorbar=None,
-    hue='country',
     palette='Greens',
-    legend=False,
     col_wrap=3,
     height=4,
     aspect=1.2,
@@ -150,9 +160,10 @@ g2 = sns.catplot(
 )
 g2.set_axis_labels("Country", "% Increase in Emissions vs USA (Ahantya Sharma)")
 g2.set_titles("CEDA | {col_name}")
-fix_plot(g2)
+fix_plot(g2, ceda_plot)
 plt.tight_layout()
 plt.show()
+
 
 # --- General steel product code 720610 plot ---
 # Filter only for steel and product_code = 720610
@@ -204,7 +215,7 @@ g = sns.catplot(
 
 g.set_axis_labels("Country", "% Increase in Emissions vs USA")
 g.set_titles("Steel (Product Code 720610) | PCF vs USA")
-fix_plot(g)
+fix_plotMaterial(g)
 plt.tight_layout()
 plt.show()
 
@@ -253,7 +264,7 @@ g = sns.catplot(
 
 g.set_axis_labels("Country", "% Increase in Emissions vs USA")
 g.set_titles("Aluminum (HS 760421) | PCF vs USA")
-fix_plot(g)
+fix_plotMaterial(g)
 plt.tight_layout()
 plt.show()
 
@@ -303,7 +314,7 @@ g = sns.catplot(
 
 g.set_axis_labels("Country", "% Increase in Emissions vs USA")
 g.set_titles("Copper (HS 740811) | PCF vs USA")
-fix_plot(g)
+fix_plotMaterial(g)
 plt.tight_layout()
 plt.show()
 
@@ -354,6 +365,14 @@ g = sns.catplot(
 
 g.set_axis_labels("Country", "% Increase in Emissions vs USA")
 g.set_titles("Polyethylene (HS 390110) | PCF vs USA")
-fix_plot(g)
+fix_plotMaterial(g)
 plt.tight_layout()
 plt.show()
+
+
+# spot check china brazil that should be lower than germany for ceda steel
+# fix pcf numbers baseline
+
+#1 positive trends are similar in ceda and pcf
+#2 spread of percentages in ceda are bigger.
+#3 china may be underestimated
