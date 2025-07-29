@@ -59,11 +59,43 @@ country_alias = {
     'Viet Nam': 'Vietnam',
     'China, mainland': 'China',
 }
+country_alias.update({
+    'Türkiye': 'Turkey',
+    'Czechia': 'Czech Republic',
+    'Kyrgyz Republic': 'Kyrgyzstan',
+    'Iran (Islamic Republic of)': 'Iran',
+    'Venezuela (Bolivarian Republic of)': 'Venezuela',
+    'Syrian Arab Republic': 'Syria',
+    'Lao People\'s Democratic Republic': 'Laos',
+    'Republic of Moldova': 'Moldova',
+    'Slovak Republic': 'Slovakia',
+    'Brunei Darussalam': 'Brunei',
+    'Hong Kong SAR': 'Hong Kong',
+    'Macao SAR': 'Macau',
+    'Democratic People\'s Republic of Korea': 'North Korea',
+    'Korea, Rep.': 'South Korea',
+    'Korea, Republic of': 'South Korea',
+    'Russian Federation': 'Russia',
+    'The former Yugoslav Republic of Macedonia': 'North Macedonia',
+    'United Republic of Tanzania': 'Tanzania',
+    'Bolivia (Plurinational State of)': 'Bolivia',
+    'Libyan Arab Jamahiriya': 'Libya',
+    'Viet Nam': 'Vietnam',
+    'China, mainland': 'China',
+    'United States of America': 'United States',
+    'United States Of America': 'United States',
+    'USA - Alabama': 'United States',
+    'USA - Alaska': 'United States',
+})
+
 
 pcf_with_naics['NAICS'] = pcf_with_naics['NAICS'].replace(naics_alias)
 ceda_long['NAICS'] = ceda_long['NAICS'].replace(naics_alias)
 pcf_with_naics['country'] = pcf_with_naics['country'].replace(country_alias)
 ceda_long['country'] = ceda_long['country'].replace(country_alias)
+
+
+print("Turkey" in pcf_with_naics['country'].unique())
 
 # Plotting
 sns.set_theme(style='whitegrid')
@@ -112,6 +144,7 @@ for code, material in product_codes.items():
 
     material_df['emissions'] = pd.to_numeric(material_df['emissions'], errors='coerce')
     material_df = material_df.dropna(subset=['emissions'])
+    print(material_df[material_df['country'] == 'Turkey'])
 
     pcf_summary = material_df.groupby('country', as_index=False).first()
 
@@ -123,9 +156,11 @@ for code, material in product_codes.items():
 
     pcf_summary['Pct_Increase'] = ((pcf_summary['emissions'] - usa_value) / usa_value) * 100
     pcf_summary = pcf_summary[pcf_summary['country'].isin(country_order)]
+    pcf_summary_no_us = pcf_summary[pcf_summary['country'] != 'United States']
+    country_order_no_us = [c for c in country_order if c != 'United States']
 
     g1 = sns.catplot(
-        data=pcf_summary,
+        data=pcf_summary_no_us,
         x='country',
         y='Pct_Increase',
         kind='bar',
@@ -134,7 +169,7 @@ for code, material in product_codes.items():
         legend=False,
         height=5,
         aspect=1.5,
-        order=country_order
+        order=country_order_no_us
     )
     g1.set_axis_labels("Country", "% Increase in Emissions vs USA")
     g1.fig.suptitle(f"{material} (HS {code}) | PCF vs USA", fontsize=16)
@@ -155,9 +190,13 @@ for code, material in product_codes.items():
     ceda_summary = ceda_material.groupby('country', as_index=False).first()
     ceda_summary['Pct_Increase'] = ((ceda_summary['emissions'] - usa_ceda_value) / usa_ceda_value) * 100
     ceda_summary = ceda_summary[ceda_summary['country'].isin(country_order)]
+    ceda_summary_no_us = ceda_summary[ceda_summary['country'] != 'United States']
+    country_order_no_us = [c for c in country_order if c != 'United States']
+
+    print()
 
     g2 = sns.catplot(
-        data=ceda_summary,
+        data=ceda_summary_no_us,
         x='country',
         y='Pct_Increase',
         kind='bar',
@@ -166,7 +205,7 @@ for code, material in product_codes.items():
         legend=False,
         height=5,
         aspect=1.5,
-        order=country_order
+        order=country_order_no_us
     )
     g2.set_axis_labels("Country", "% Increase in Emissions vs USA")
     g2.fig.suptitle(f"{material} (NAICS {code}) | CEDA vs USA", fontsize=16)
