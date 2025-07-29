@@ -117,14 +117,12 @@ def fix_plot(g, data):
 
 def fix_plotMaterial(g):
     for ax in g.axes.flatten():
-        # Set proper x-tick labels
         countries = ax.get_xticks()
         labels = [t.get_text() for t in ax.get_xticklabels()]
         ax.set_xticks(countries)
         ax.set_xticklabels(labels, rotation=45, ha='right')
 
 
-# ✅ Fix for PCF plot
 g1 = sns.catplot(
     data=pcf_plot,
     x='country',              
@@ -166,39 +164,33 @@ plt.show()
 
 
 # --- General steel product code 720610 plot ---
-# Filter only for steel and product_code = 720610
 steel_720610_pcf = pcf_with_naics[
     (pcf_with_naics['product_code'] == '720610') &
     (pcf_with_naics['Material'].str.lower() == 'steel')
 ].copy()
 
-# Clean emissions column
 steel_720610_pcf['emissions'] = pd.to_numeric(steel_720610_pcf['emissions'], errors='coerce')
 steel_720610_pcf = steel_720610_pcf.dropna(subset=['emissions'])
 
-# Keep only the first entry per country
 first_emissions_per_country = steel_720610_pcf.groupby('country', as_index=False).first()
 
 # REMEMBER THIS
 
-# Get USA baseline
 usa_baseline_value = first_emissions_per_country[
     first_emissions_per_country['country'] == 'United States'
 ]['emissions'].values[0]
 
 print(f"USA baseline emission for Steel (720610): {usa_baseline_value}")
 
-# Add % Increase vs USA
 first_emissions_per_country['Pct_Increase'] = (
     (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-# Optional: filter to countries in your desired display order
 plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
 print(plot_data)
 
-# Plot
+
 g = sns.catplot(
     data=plot_data,
     x='country',
@@ -225,29 +217,29 @@ aluminum_760421_pcf = pcf_with_naics[
     (pcf_with_naics['product_code'] == code)
 ].copy()
 
-# Clean emissions
+
 aluminum_760421_pcf['emissions'] = pd.to_numeric(aluminum_760421_pcf['emissions'], errors='coerce')
 aluminum_760421_pcf = aluminum_760421_pcf.dropna(subset=['emissions'])
 
 # Keep only the first entry per country
 first_emissions_per_country = aluminum_760421_pcf.groupby('country', as_index=False).first()
 
-# Get USA baseline
+
 usa_baseline_value = first_emissions_per_country[
     first_emissions_per_country['country'] == 'United States'
 ]['emissions'].values[0]
 
 print(f"USA baseline emission for Aluminum (760421): {usa_baseline_value}")
 
-# Add % Increase vs USA
+
 first_emissions_per_country['Pct_Increase'] = (
     (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-# Filter by country_order
+
 plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
-# Plot
+
 g = sns.catplot(
     data=plot_data,
     x='country',
@@ -275,29 +267,29 @@ copper_740811_pcf = pcf_with_naics[
     (pcf_with_naics['product_code'] == code)
 ].copy()
 
-# Clean emissions
+
 copper_740811_pcf['emissions'] = pd.to_numeric(copper_740811_pcf['emissions'], errors='coerce')
 copper_740811_pcf = copper_740811_pcf.dropna(subset=['emissions'])
 
 # Keep only the first entry per country
 first_emissions_per_country = copper_740811_pcf.groupby('country', as_index=False).first()
 
-# Get USA baseline
+
 usa_baseline_value = first_emissions_per_country[
     first_emissions_per_country['country'] == 'United States'
 ]['emissions'].values[0]
 
 print(f"USA baseline emission for Copper (740811): {usa_baseline_value}")
 
-# Add % Increase vs USA
+
 first_emissions_per_country['Pct_Increase'] = (
     (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-# Filter by country order
+
 plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
-# Plot
+
 g = sns.catplot(
     data=plot_data,
     x='country',
@@ -326,29 +318,29 @@ poly_390110_pcf = pcf_with_naics[
     (pcf_with_naics['product_code'] == code)
 ].copy()
 
-# Clean emissions
+
 poly_390110_pcf['emissions'] = pd.to_numeric(poly_390110_pcf['emissions'], errors='coerce')
 poly_390110_pcf = poly_390110_pcf.dropna(subset=['emissions'])
 
 # Keep only the first entry per country
 first_emissions_per_country = poly_390110_pcf.groupby('country', as_index=False).first()
 
-# Get USA baseline
+
 usa_baseline_value = first_emissions_per_country[
     first_emissions_per_country['country'] == 'United States'
 ]['emissions'].values[0]
 
 print(f"USA baseline emission for Polyethylene (390110): {usa_baseline_value}")
 
-# Add % Increase vs USA
+
 first_emissions_per_country['Pct_Increase'] = (
     (first_emissions_per_country['emissions'] - usa_baseline_value) / usa_baseline_value
 ) * 100
 
-# Filter by country order
+
 plot_data = first_emissions_per_country[first_emissions_per_country['country'].isin(country_order)]
 
-# Plot
+
 g = sns.catplot(
     data=plot_data,
     x='country',
