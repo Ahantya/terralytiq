@@ -128,7 +128,7 @@ product_codes = {
 naics_map = {
     '720610': '331110',    # Steel
     '760421': '331313',    # Aluminum
-    '740811': '331420',    # Copper
+    '740811': '331420',    # Copper 
     '390110': '325211',     # Polyethylene
     '850760': '335912',     # Battery Cell
     '382450': '327320',     # Concrete
