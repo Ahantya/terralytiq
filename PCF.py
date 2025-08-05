@@ -118,21 +118,21 @@ product_codes = {
     '740811': 'Copper',
     '390110': 'Polyethylene',
     '850760': 'Battery Cell',
-    '382450': 'Concrete',
-    '310520': 'Fertilizer',
+    # '382450': 'Concrete',
+    # '310520': 'Fertilizer',
     '540710': 'Textile',
     '853400': "Circuit",
     '390761': "Polyethylene (Plastics)"
 }
 
 naics_map = {
-    '720610': '331110',    # Steel
+    '720610': '331110',    # Steel 
     '760421': '331313',    # Aluminum
     '740811': '331420',    # Copper 
     '390110': '325211',     # Polyethylene
     '850760': '335912',     # Battery Cell
-    '382450': '327320',     # Concrete
-    '310520': '325310',     # Fertilizer
+    # '382450': '327320',     # Concrete
+    # '310520': '325310',     # Fertilizer
     '540710': "313300",     # Textile
     '853400': "334418",     # Circuit Assembly
     '390761': "326160"     # Plastics
