@@ -225,3 +225,70 @@ for code, material in product_codes.items():
     fix_plotMaterial(g2)
     plt.tight_layout()
     plt.show()
+
+
+# line graphs 
+
+
+for code, material in product_codes.items():
+    print(f"\n--- {material} ({code}) ---")
+    
+
+    naics_code = naics_map.get(code)
+    if not naics_code:
+        print(f"Skipping {material} — no NAICS mapping found.")
+        continue
+    
+    # --- PCF ---
+    pcf_mat = pcf_with_naics[pcf_with_naics['product_code'] == code].copy()
+    pcf_mat['emissions'] = pd.to_numeric(pcf_mat['emissions'], errors='coerce')
+    pcf_mat = pcf_mat.dropna(subset=['emissions'])
+
+    pcf_summary = pcf_mat.groupby('country', as_index=False).mean(numeric_only=True)
+
+    try:
+        usa_value_pcf = pcf_summary[pcf_summary['country'] == 'United States']['emissions'].values[0]
+    except IndexError:
+        print(f"Missing USA baseline in PCF for {material}")
+        continue
+
+    pcf_summary['Pct_Increase'] = ((pcf_summary['emissions'] - usa_value_pcf) / usa_value_pcf) * 100
+    pcf_summary['Source'] = 'PCF'
+
+    # --- CEDA ---
+    ceda_mat = ceda_long[ceda_long['NAICS'] == naics_code].copy()
+    ceda_summary = ceda_mat.groupby('country', as_index=False).mean(numeric_only=True)
+
+    try:
+        usa_value_ceda = ceda_summary[ceda_summary['country'] == 'United States']['emissions'].values[0]
+    except IndexError:
+        print(f"Missing USA baseline in CEDA for {material}")
+        continue
+
+    ceda_summary['Pct_Increase'] = ((ceda_summary['emissions'] - usa_value_ceda) / usa_value_ceda) * 100
+    ceda_summary['Source'] = 'CEDA'
+
+    # --- Combine ---
+    combined = pd.concat([
+        pcf_summary[['country', 'Pct_Increase', 'Source']],
+        ceda_summary[['country', 'Pct_Increase', 'Source']]
+    ], ignore_index=True)
+
+    combined = combined[combined['country'].isin(country_order)]
+    combined = combined[combined['country'] != 'United States']
+
+    # --- Plot ---
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(
+        data=combined,
+        x='country',
+        y='Pct_Increase',
+        hue='Source',
+        marker='o'
+    )
+    plt.xticks(rotation=45, ha='right')
+    plt.xlabel("Country")
+    plt.ylabel("% Increase in Emissions vs USA")
+    plt.title(f"{material} | PCF vs CEDA (% Increase vs USA)")
+    plt.tight_layout()
+    plt.show()
