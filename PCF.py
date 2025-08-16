@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import CEDA
 from matplotlib.ticker import FixedLocator
+import os
+
+# Save directory
+outdir = os.getcwd()  # current working directory
 
 # Load PCF and conversion
 PCF = pd.read_csv("PCF.csv")
@@ -58,46 +62,13 @@ country_alias = {
     'Russian Federation': 'Russia',
     'Viet Nam': 'Vietnam',
     'China, mainland': 'China',
+    # ... other mappings ...
 }
-country_alias.update({
-    'Türkiye': 'Turkey',
-    'Czechia': 'Czech Republic',
-    'Kyrgyz Republic': 'Kyrgyzstan',
-    'Iran (Islamic Republic of)': 'Iran',
-    'Venezuela (Bolivarian Republic of)': 'Venezuela',
-    'Syrian Arab Republic': 'Syria',
-    'Lao People\'s Democratic Republic': 'Laos',
-    'Republic of Moldova': 'Moldova',
-    'Slovak Republic': 'Slovakia',
-    'Brunei Darussalam': 'Brunei',
-    'Hong Kong SAR': 'Hong Kong',
-    'Macao SAR': 'Macau',
-    'Democratic People\'s Republic of Korea': 'North Korea',
-    'Korea, Rep.': 'South Korea',
-    'Korea, Republic of': 'South Korea',
-    'Russian Federation': 'Russia',
-    'The former Yugoslav Republic of Macedonia': 'North Macedonia',
-    'United Republic of Tanzania': 'Tanzania',
-    'Bolivia (Plurinational State of)': 'Bolivia',
-    'Libyan Arab Jamahiriya': 'Libya',
-    'Viet Nam': 'Vietnam',
-    'China, mainland': 'China',
-    'United States of America': 'United States',
-    'United States Of America': 'United States',
-    'USA - Alabama': 'United States',
-    'USA - Alaska': 'United States',
-})
-
-
 pcf_with_naics['NAICS'] = pcf_with_naics['NAICS'].replace(naics_alias)
 ceda_long['NAICS'] = ceda_long['NAICS'].replace(naics_alias)
 pcf_with_naics['country'] = pcf_with_naics['country'].replace(country_alias)
 ceda_long['country'] = ceda_long['country'].replace(country_alias)
 
-
-print("Turkey" in pcf_with_naics['country'].unique())
-
-# Plotting
 sns.set_theme(style='whitegrid')
 
 def fix_plotMaterial(g):
@@ -118,8 +89,6 @@ product_codes = {
     '740811': 'Copper',
     '390110': 'Polyethylene',
     '850760': 'Battery Cell',
-    # '382450': 'Concrete',
-    # '310520': 'Fertilizer',
     '540710': 'Textile',
     '853400': "Circuit",
     '390761': "Polyethylene (Plastics)"
@@ -131,8 +100,6 @@ naics_map = {
     '740811': '331420',    # Copper 
     '390110': '325211',     # Polyethylene
     '850760': '335912',     # Battery Cell
-    # '382450': '327320',     # Concrete
-    # '310520': '325310',     # Fertilizer
     '540710': "313300",     # Textile
     '853400': "334418",     # Circuit Assembly
     '390761': "326160"     # Plastics
@@ -146,27 +113,18 @@ palette_map = {
     'Battery Cell': 'Greens'
 }
 
-# PCF & CEDA plots
+# ---- BAR PLOTS ----
 for code, material in product_codes.items():
-    print(f"\n--- {material} ({code}) ---")
-
-    ## -------- PCF Plot -------- ##
-    material_df = pcf_with_naics[
-        (pcf_with_naics['product_code'] == code)
-    ].copy()
-
+    material_df = pcf_with_naics[pcf_with_naics['product_code'] == code].copy()
     material_df['emissions'] = pd.to_numeric(material_df['emissions'], errors='coerce')
     material_df = material_df.dropna(subset=['emissions'])
-    print(material_df[material_df['country'] == 'Turkey'])
-
+    
+    # PCF
     pcf_summary = material_df.groupby('country', as_index=False).first()
-
     try:
         usa_value = pcf_summary[pcf_summary['country'] == 'United States']['emissions'].values[0]
     except IndexError:
-        print(f"Missing USA baseline in PCF for {material}")
         continue
-
     pcf_summary['Pct_Increase'] = ((pcf_summary['emissions'] - usa_value) / usa_value) * 100
     pcf_summary = pcf_summary[pcf_summary['country'].isin(country_order)]
     pcf_summary_no_us = pcf_summary[pcf_summary['country'] != 'United States']
@@ -188,25 +146,20 @@ for code, material in product_codes.items():
     g1.fig.suptitle(f"{material} (HS {code}) | PCF vs USA", fontsize=16)
     fix_plotMaterial(g1)
     plt.tight_layout()
-    plt.show()
+    g1.savefig(os.path.join(outdir, f"{material}_{code}_PCF.png"))
+    plt.close()
 
-    ## -------- CEDA Plot -------- ##
+    # CEDA
     naics_code = naics_map.get(code)
     ceda_material = ceda_long[ceda_long['NAICS'] == naics_code].copy()
-
     try:
         usa_ceda_value = ceda_material[ceda_material['country'] == 'United States']['emissions'].values[0]
     except IndexError:
-        print(f"Missing USA baseline in CEDA for {material}")
         continue
-
     ceda_summary = ceda_material.groupby('country', as_index=False).first()
     ceda_summary['Pct_Increase'] = ((ceda_summary['emissions'] - usa_ceda_value) / usa_ceda_value) * 100
     ceda_summary = ceda_summary[ceda_summary['country'].isin(country_order)]
     ceda_summary_no_us = ceda_summary[ceda_summary['country'] != 'United States']
-    country_order_no_us = [c for c in country_order if c != 'United States']
-
-    print()
 
     g2 = sns.catplot(
         data=ceda_summary_no_us,
@@ -224,60 +177,45 @@ for code, material in product_codes.items():
     g2.fig.suptitle(f"{material} (NAICS {code}) | CEDA vs USA", fontsize=16)
     fix_plotMaterial(g2)
     plt.tight_layout()
-    plt.show()
+    g2.savefig(os.path.join(outdir, f"{material}_{code}_CEDA.png"))
+    plt.close()
 
-
-# line graphs 
-
-
+# ---- LINE PLOTS ----
 for code, material in product_codes.items():
-    print(f"\n--- {material} ({code}) ---")
-    
-
     naics_code = naics_map.get(code)
     if not naics_code:
-        print(f"Skipping {material} — no NAICS mapping found.")
         continue
     
-    # --- PCF ---
+    # PCF
     pcf_mat = pcf_with_naics[pcf_with_naics['product_code'] == code].copy()
     pcf_mat['emissions'] = pd.to_numeric(pcf_mat['emissions'], errors='coerce')
     pcf_mat = pcf_mat.dropna(subset=['emissions'])
-
     pcf_summary = pcf_mat.groupby('country', as_index=False).mean(numeric_only=True)
-
     try:
         usa_value_pcf = pcf_summary[pcf_summary['country'] == 'United States']['emissions'].values[0]
     except IndexError:
-        print(f"Missing USA baseline in PCF for {material}")
         continue
-
     pcf_summary['Pct_Increase'] = ((pcf_summary['emissions'] - usa_value_pcf) / usa_value_pcf) * 100
     pcf_summary['Source'] = 'PCF'
 
-    # --- CEDA ---
+    # CEDA
     ceda_mat = ceda_long[ceda_long['NAICS'] == naics_code].copy()
     ceda_summary = ceda_mat.groupby('country', as_index=False).mean(numeric_only=True)
-
     try:
         usa_value_ceda = ceda_summary[ceda_summary['country'] == 'United States']['emissions'].values[0]
     except IndexError:
-        print(f"Missing USA baseline in CEDA for {material}")
         continue
-
     ceda_summary['Pct_Increase'] = ((ceda_summary['emissions'] - usa_value_ceda) / usa_value_ceda) * 100
     ceda_summary['Source'] = 'CEDA'
 
-    # --- Combine ---
+    # Combine
     combined = pd.concat([
         pcf_summary[['country', 'Pct_Increase', 'Source']],
         ceda_summary[['country', 'Pct_Increase', 'Source']]
     ], ignore_index=True)
-
     combined = combined[combined['country'].isin(country_order)]
     combined = combined[combined['country'] != 'United States']
 
-    # --- Plot ---
     plt.figure(figsize=(12, 6))
     sns.lineplot(
         data=combined,
@@ -291,4 +229,5 @@ for code, material in product_codes.items():
     plt.ylabel("% Increase in Emissions vs USA")
     plt.title(f"{material} | PCF vs CEDA (% Increase vs USA)")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join(outdir, f"{material}_{code}_Line.png"))
+    plt.close()
